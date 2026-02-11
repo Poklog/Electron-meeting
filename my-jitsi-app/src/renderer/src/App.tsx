@@ -1,65 +1,65 @@
-import { JitsiMeeting } from '@jitsi/react-sdk'
-import { useRef, useState } from 'react'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AuthProvider } from './auth/AuthContext'
+import { RequireAuth } from './auth/RequireAuth'
+import { AppShell } from './layout/AppShell'
+import { DashboardPage } from './pages/Dashboard'
+import { JobsListPage } from './pages/jobs/JobsList'
+import { JobFormPage } from './pages/jobs/JobForm'
+import { JobDetailPage } from './pages/jobs/JobDetail'
+import { ResumesListPage } from './pages/resumes/ResumesList'
+import { ResumeDetailPage } from './pages/resumes/ResumeDetail'
+import { ResumeFormPage } from './pages/resumes/ResumeForm'
+import { AiAnalysisPage } from './pages/ai/AiAnalysis'
+import { SettingsPage } from './pages/settings/Settings'
+import { InterviewsListPage } from './pages/interviews/InterviewsList'
+import { InterviewFormPage } from './pages/interviews/InterviewForm'
+import { InterviewDetailPage } from './pages/interviews/InterviewDetail'
+import { NotFoundPage } from './pages/NotFound'
+import { LoginPage } from './pages/auth/LoginPage'
+import { MeetingPage } from './pages/meeting'
 
-function App() {
-  const [isStarted, setIsStarted] = useState(false)
-  const apiRef = useRef<any>(null)
-
-  // 1. 初始進入頁面
-  if (!isStarted) {
-    return (
-      <div style={{ textAlign: 'center' }}>
-        <h1>進入會議</h1>
-        <br />
-        <button
-          onClick={() => setIsStarted(true)}
-          style={{
-            padding: '12px 24px',
-            fontSize: '18px',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            background: '#ffffff',
-            border: 'none',
-            color: 'black'
-          }}
-        >
-          進入會議
-        </button>
-      </div>
-    )
-  }
-  // 2. 會議進行頁面
+export default function App() {
   return (
-    <div style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* 頂部工具列 (可選，用來測試是否還有東西在畫面上) */}
-      <div style={{ background: '#333', color: 'white', padding: '10px' }}>
-        會議進行中... <button onClick={() => setIsStarted(false)}>離開</button>
-      </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
 
-      {/* Jitsi 容器：必須給 flex: 1 或明確高度 */}
-      <div style={{ flex: 1 }}>
-        <JitsiMeeting
-          domain="meet.jit.si"
-          roomName="My-Unique-Electron-Room-123"
-          configOverwrite={{
-            startWithAudioMuted: true,
-            disableModeratorIndicator: true,
-            enableEmailInStats: false
-          }}
-          interfaceConfigOverwrite={{
-            DISABLE_JOIN_LEAVE_NOTIFICATIONS: true
-          }}
-          getIFrameRef={(iframeRef) => {
-            iframeRef.style.height = '100%'
-            iframeRef.style.width = '100%'
-          }}
-          onReadyToClose={() => {
-            setIsStarted(false)
-          }}
-        />
-      </div>
-    </div>
+          <Route
+            element={
+              <RequireAuth>
+                <AppShell />
+              </RequireAuth>
+            }
+          >
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+
+            <Route path="/jobs" element={<JobsListPage />} />
+            <Route path="/jobs/new" element={<JobFormPage mode="create" />} />
+            <Route path="/jobs/:jobId" element={<JobDetailPage />} />
+            <Route path="/jobs/:jobId/edit" element={<JobFormPage mode="edit" />} />
+
+            <Route path="/resumes" element={<ResumesListPage />} />
+            <Route path="/resumes/new" element={<ResumeFormPage />} />
+            <Route path="/resumes/:resumeId" element={<ResumeDetailPage />} />
+
+            <Route path="/interviews" element={<InterviewsListPage />} />
+            <Route path="/interviews/new" element={<InterviewFormPage mode="create" />} />
+            <Route path="/interviews/:interviewId" element={<InterviewDetailPage />} />
+            <Route path="/interviews/:interviewId/edit" element={<InterviewFormPage mode="edit" />} />
+
+            <Route path="/ai-analysis" element={<AiAnalysisPage />} />
+            <Route path="/ai-analysis/:resumeId" element={<AiAnalysisPage />} />
+
+            <Route path="/meeting/:interviewId" element={<MeetingPage />} />
+
+            <Route path="/settings" element={<SettingsPage />} />
+
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   )
 }
-
-export default App

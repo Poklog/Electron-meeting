@@ -1,7 +1,10 @@
 import { app, shell, BrowserWindow, session, ipcMain } from 'electron'
-import { join } from 'path'
+import { spawn } from 'child_process'
+import path, { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+
+let pyProcess: any = null
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -49,9 +52,38 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  createWindow()
-
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+})
+
+function startPythonBackend() {
+  // 定義虛擬環境中 python 執行檔的路徑 (Windows 為例)
+  // 假設你把原本的 backend 資料夾放在 electron 專案根目錄
+  const backendDir = path.join(app.getAppPath(), 'backend');
+  const venvPath = path.join(backendDir, '.venv', 'Scripts', 'python.exe');
+
+  pyProcess = spawn(venvPath, ['-m', 'uvicorn', 'app.main:app', '--port', '8000',
+    '--reload'], {
+    cwd: backendDir,
+    env: {
+      ...process.env,
+      PYTHONPATH: backendDir, // 關鍵：告訴 Python backend 是搜尋模組的根目錄
+      PYTHONIOENCODING: 'utf-8'
+    }
+  });
+
+  pyProcess.stdout.on('data', (data) => console.log(`Python: ${data}`));
+  pyProcess.stderr.on('data', (data) => console.error(`Python Error: ${data}`));
+}
+
+// 在 app.whenReady() 呼叫
+app.whenReady().then(() => {
+  startPythonBackend();
+  createWindow();
+})
+
+// 關閉 App 時也要關閉 Python
+app.on('will-quit', () => {
+  if (pyProcess) pyProcess.kill();
 })
