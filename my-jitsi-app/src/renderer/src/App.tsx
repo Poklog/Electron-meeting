@@ -16,7 +16,7 @@ import { InterviewFormPage } from './pages/interviews/InterviewForm'
 import { InterviewDetailPage } from './pages/interviews/InterviewDetail'
 import { NotFoundPage } from './pages/NotFound'
 import { LoginPage } from './pages/auth/LoginPage'
-import { MeetingPage } from './pages/meeting'
+import { MeetingPage } from './pages/meeting/meeting'
 
 export default function App() {
   return (
@@ -52,7 +52,7 @@ export default function App() {
             <Route path="/ai-analysis" element={<AiAnalysisPage />} />
             <Route path="/ai-analysis/:resumeId" element={<AiAnalysisPage />} />
 
-            <Route path="/meeting/:interviewId" element={<MeetingPage />} />
+            <Route path="/meeting" element={<MeetingPage />} />
 
             <Route path="/settings" element={<SettingsPage />} />
 

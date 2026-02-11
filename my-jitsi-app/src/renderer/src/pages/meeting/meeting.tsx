@@ -1,9 +1,8 @@
 import { JitsiMeeting } from '@jitsi/react-sdk'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 
 export function MeetingPage() {
   const [isStarted, setIsStarted] = useState(false)
-  const apiRef = useRef<any>(null)
 
   // 1. 初始進入頁面
   if (!isStarted) {

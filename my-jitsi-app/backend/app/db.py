@@ -9,14 +9,15 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.core.config import settings
 
 
-# Create engine with proper connection pooling for PostgreSQL/Supabase
 engine = create_engine(
-  settings.resolved_database_url,
-  # SQLite: use check_same_thread=False
-  # PostgreSQL: use connection pooling with pool_pre_ping for connection validation
-  connect_args={"check_same_thread": False} if "sqlite" in settings.resolved_database_url else {},
-  pool_pre_ping=True if "postgresql" in settings.resolved_database_url else False,
-  pool_size=5 if "postgresql" in settings.resolved_database_url else 0,
+    settings.resolved_database_url,
+    echo = True,
+    connect_args={
+        "check_same_thread": False,
+        "timeout": 30  # 增加 30 秒逾時，防止在 Electron 環境中因檔案存取延遲導致掛起
+    } if "sqlite" in settings.resolved_database_url else {},
+    pool_pre_ping=True if "postgresql" in settings.resolved_database_url else False,
+    pool_size=5 if "postgresql" in settings.resolved_database_url else 0,
 )
 
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, class_=Session)

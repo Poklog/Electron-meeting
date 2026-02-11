@@ -63,8 +63,7 @@ function startPythonBackend() {
   const backendDir = path.join(app.getAppPath(), 'backend');
   const venvPath = path.join(backendDir, '.venv', 'Scripts', 'python.exe');
 
-  pyProcess = spawn(venvPath, ['-m', 'uvicorn', 'app.main:app', '--port', '8000',
-    '--reload'], {
+  pyProcess = spawn(venvPath, ['-m', 'uvicorn', 'app.main:app', '--port', '8000', '--workers', '1'], {
     cwd: backendDir,
     env: {
       ...process.env,
@@ -83,7 +82,21 @@ app.whenReady().then(() => {
   createWindow();
 })
 
-// 關閉 App 時也要關閉 Python
+// 核心保護機制 A：當所有視窗關閉時
+app.on('window-all-closed', () => {
+  if (pyProcess) {
+    console.log('正在關閉 Python 後端...');
+    // 在 Windows 上，有時需要強制殺死整個進程樹
+    pyProcess.kill(); 
+    pyProcess = null;
+  }
+  
+  if (process.platform !== 'darwin') {
+    app.quit()
+  }
+})
+
+// 核心保護機制 B：當 App 準備退出時（保險鎖）
 app.on('will-quit', () => {
   if (pyProcess) pyProcess.kill();
 })
